@@ -108,6 +108,7 @@ do
 
   -- Make line numbers default
   vim.o.number = true
+  vim.o.relativenumber = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
   -- vim.o.relativenumber = true
@@ -122,7 +123,7 @@ do
   --  Schedule the setting after `UiEnter` because it can increase startup-time.
   --  Remove this option if you want your OS clipboard to remain independent.
   --  See `:help 'clipboard'`
-  vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+  -- vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
   -- Enable break indent
   vim.o.breakindent = true
@@ -220,10 +221,10 @@ do
   vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
   -- TIP: Disable arrow keys in normal mode
-  -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
-  -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
-  -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
-  -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+  vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
+  vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
+  vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
+  vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
   -- Keybinds to make split navigation easier.
   --  Use CTRL+<hjkl> to switch between windows
@@ -294,29 +295,29 @@ do
   --  runs the appropriate build command for that plugin if necessary.
   --
   -- See `:help vim.pack-events`
-  vim.api.nvim_create_autocmd('PackChanged', {
-    callback = function(ev)
-      local name = ev.data.spec.name
-      local kind = ev.data.kind
-      if kind ~= 'install' and kind ~= 'update' then return end
-
-      if name == 'telescope-fzf-native.nvim' and vim.fn.executable 'make' == 1 then
-        run_build(name, { 'make' }, ev.data.path)
-        return
-      end
-
-      if name == 'LuaSnip' then
-        if vim.fn.has 'win32' ~= 1 and vim.fn.executable 'make' == 1 then run_build(name, { 'make', 'install_jsregexp' }, ev.data.path) end
-        return
-      end
-
-      if name == 'nvim-treesitter' then
-        if not ev.data.active then vim.cmd.packadd 'nvim-treesitter' end
-        vim.cmd 'TSUpdate'
-        return
-      end
-    end,
-  })
+  -- vim.api.nvim_create_autocmd('PackChanged', {
+  --   callback = function(ev)
+  --     local name = ev.data.spec.name
+  --     local kind = ev.data.kind
+  --     if kind ~= 'install' and kind ~= 'update' then return end
+  --
+  --     if name == 'telescope-fzf-native.nvim' and vim.fn.executable 'make' == 1 then
+  --       run_build(name, { 'make' }, ev.data.path)
+  --       return
+  --     end
+  --
+  --     if name == 'LuaSnip' then
+  --       if vim.fn.has 'win32' ~= 1 and vim.fn.executable 'make' == 1 then run_build(name, { 'make', 'install_jsregexp' }, ev.data.path) end
+  --       return
+  --     end
+  --
+  --     if name == 'nvim-treesitter' then
+  --       if not ev.data.active then vim.cmd.packadd 'nvim-treesitter' end
+  --       vim.cmd 'TSUpdate'
+  --       return
+  --     end
+  --   end,
+  -- })
 end
 
 ---Because most plugins are hosted on GitHub, you can use the helper
@@ -364,6 +365,7 @@ do
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
   require('which-key').setup {
+    preset = 'helix',
     -- Delay between pressing a key and opening which-key (milliseconds)
     delay = 0,
     icons = { mappings = vim.g.have_nerd_font },
@@ -382,18 +384,25 @@ do
   -- change the command under that to load whatever the name of that colorscheme is.
   --
   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { gh 'folke/tokyonight.nvim' }
-  ---@diagnostic disable-next-line: missing-fields
-  require('tokyonight').setup {
-    styles = {
-      comments = { italic = false }, -- Disable italics in comments
-    },
-  }
+  -- vim.pack.add { gh 'folke/tokyonight.nvim' }
+  -- ---@diagnostic disable-next-line: missing-fields
+  -- require('tokyonight').setup {
+  --   styles = {
+  --     comments = { italic = false }, -- Disable italics in comments
+  --   },
+  -- }
+
+  vim.pack.add { gh 'sainnhe/everforest' }
+  vim.pack.add { { src = 'https://github.com/catppuccin/nvim', name = 'catppuccin' } }
+
+  require('catppuccin').setup {}
 
   -- Load the colorscheme here.
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  vim.cmd.colorscheme 'tokyonight-night'
+  -- vim.cmd.colorscheme 'tokyonight-night'
+
+  vim.cmd.colorscheme 'catppuccin-nvim'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -435,16 +444,16 @@ do
   -- Simple and easy statusline.
   --  You could remove this setup call if you don't like it,
   --  and try some other statusline plugin
-  local statusline = require 'mini.statusline'
-  -- Set `use_icons` to true if you have a Nerd Font
-  statusline.setup { use_icons = vim.g.have_nerd_font }
-
-  -- You can configure sections in the statusline by overriding their
-  -- default behavior. For example, here we set the section for
-  -- cursor location to LINE:COLUMN
-  ---@diagnostic disable-next-line: duplicate-set-field
-  statusline.section_location = function() return '%2l:%-2v' end
-
+  -- local statusline = require 'mini.statusline'
+  -- -- Set `use_icons` to true if you have a Nerd Font
+  -- statusline.setup { use_icons = vim.g.have_nerd_font }
+  --
+  -- -- You can configure sections in the statusline by overriding their
+  -- -- default behavior. For example, here we set the section for
+  -- -- cursor location to LINE:COLUMN
+  -- ---@diagnostic disable-next-line: duplicate-set-field
+  -- statusline.section_location = function() return '%2l:%-2v' end
+  --
   -- ... and there is more!
   --  Check out: https://github.com/nvim-mini/mini.nvim
 end
@@ -484,6 +493,7 @@ do
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
   }
+
   if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
   -- NOTE: You can install multiple plugins at once
@@ -511,17 +521,36 @@ do
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
-  vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-  vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-  vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-  vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-  vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-  vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-  vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-  vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
+  vim.keymap.set('n', '<leader>ph', builtin.help_tags, { desc = '[P](Search) [H]elp' })
+  vim.keymap.set('n', '<leader>pk', builtin.keymaps, { desc = '[P](Search) [K]eymaps' })
+  vim.keymap.set('n', '<leader>pf', builtin.find_files, { desc = '[P](Search) [F]iles' })
+  vim.keymap.set('n', '<leader>ps', builtin.builtin, { desc = '[P](Search) [S]elect Telescope' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>pw', builtin.grep_string, { desc = '[P](Search) current [W]ord' })
+  vim.keymap.set('n', '<leader>pg', builtin.live_grep, { desc = '[P](Search) by [G]rep' })
+  vim.keymap.set('n', '<leader>pG', function() builtin.grep_string { search = vim.fn.input 'grep> ' } end, { desc = '[P](Search) by builtin [^G]rep' })
+  vim.keymap.set('n', '<leader>pd', builtin.diagnostics, { desc = '[P](Search) [D]iagnostics' })
+  vim.keymap.set('n', '<leader>pr', builtin.resume, { desc = '[P](Search) [R]esume' })
+  vim.keymap.set('n', '<leader>p.', builtin.oldfiles, { desc = '[P](Search) Recent Files ("." for repeat)' })
+  vim.keymap.set('n', '<leader>pc', builtin.commands, { desc = '[P](Search) [C]ommands' })
+  vim.keymap.set('n', '<leader>pm', builtin.marks, { desc = '[P](Search) [M]arks' })
   vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+
+  -- Search for current cursor word xyz but adds `class xzy` and auto-opens file if it's the only result
+  vim.keymap.set('n', '<leader>px', function()
+    builtin.grep_string {
+      search = string.format('class %s', vim.fn.expand '<cword>'),
+      on_complete = {
+        function(picker)
+          local count = 0
+          for _ in picker.manager:iter() do
+            count = count + 1
+            if count > 1 then break end
+          end
+          if count == 1 then require('telescope.actions').select_default(picker.prompt_bufnr) end
+        end,
+      },
+    }
+  end, { desc = '[P] [S]earch [C]lass}' })
 
   -- Add Telescope-based LSP pickers when an LSP attaches to a buffer.
   -- If you later switch picker plugins, this is where to update these mappings.
@@ -531,29 +560,29 @@ do
       local buf = event.buf
 
       -- Find references for the word under your cursor.
-      vim.keymap.set('n', 'grr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
+      vim.keymap.set('n', '<leader>gr', builtin.lsp_references, { buffer = buf, desc = '[G]oto [R]eferences' })
 
       -- Jump to the implementation of the word under your cursor.
       -- Useful when your language has ways of declaring types without an actual implementation.
-      vim.keymap.set('n', 'gri', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
+      vim.keymap.set('n', '<leader>gi', builtin.lsp_implementations, { buffer = buf, desc = '[G]oto [I]mplementation' })
 
       -- Jump to the definition of the word under your cursor.
       -- This is where a variable was first declared, or where a function is defined, etc.
       -- To jump back, press <C-t>.
-      vim.keymap.set('n', 'grd', builtin.lsp_definitions, { buffer = buf, desc = '[G]oto [D]efinition' })
+      vim.keymap.set('n', '<leader>gd', builtin.lsp_definitions, { buffer = buf, desc = '[G]oto [D]efinition' })
 
       -- Fuzzy find all the symbols in your current document.
       -- Symbols are things like variables, functions, types, etc.
-      vim.keymap.set('n', 'gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
+      vim.keymap.set('n', '<leader>gO', builtin.lsp_document_symbols, { buffer = buf, desc = 'Open Document Symbols' })
 
       -- Fuzzy find all the symbols in your current workspace.
       -- Similar to document symbols, except searches over your entire project.
-      vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
+      vim.keymap.set('n', '<leader>gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
 
       -- Jump to the type of the word under your cursor.
       -- Useful when you're not sure what type a variable is and you want to see
       -- the definition of its *type*, not where it was *defined*.
-      vim.keymap.set('n', 'grt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+      vim.keymap.set('n', '<leader>gt', builtin.lsp_type_definitions, { buffer = buf, desc = '[G]oto [T]ype Definition' })
     end,
   })
 
@@ -570,14 +599,14 @@ do
   --  See `:help telescope.builtin.live_grep()` for information about particular keys
   vim.keymap.set(
     'n',
-    '<leader>s/',
+    '<leader>p/',
     function()
       builtin.live_grep {
         grep_open_files = true,
         prompt_title = 'Live Grep in Open Files',
       }
     end,
-    { desc = '[S]earch [/] in Open Files' }
+    { desc = '[P](Search) [/] in Open Files' }
   )
 
   -- Shortcut for searching your Neovim configuration files
@@ -638,16 +667,17 @@ do
 
       -- Rename the variable under your cursor.
       --  Most Language Servers support renaming across files, etc.
-      map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
+      map('<leader>vrn', vim.lsp.buf.rename, '[R]e[n]ame')
 
       -- Execute a code action, usually your cursor needs to be on top of an error
       -- or a suggestion from your LSP for this to activate.
-      map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
+      map('<leader>vca', vim.lsp.buf.code_action, '[V]iew Code [A]ction', { 'n', 'x' })
 
       -- WARN: This is not Goto Definition, this is Goto Declaration.
       --  For example, in C this would take you to the header.
-      map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+      map('<leader>gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
+      map('<leader>vd', vim.diagnostic.open_float, '[V]iew Current [D]iagnostic')
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
       --    See `:help CursorHold` for information about when this is executed
@@ -692,16 +722,30 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    -- clangd = {},
-    -- gopls = {},
-    -- pyright = {},
-    -- rust_analyzer = {},
-    --
+    clangd = {},
+    gopls = {},
+    pyright = {},
+    rust_analyzer = {},
+
     -- Some languages (like typescript) have entire language plugins that can be useful:
     --    https://github.com/pmizio/typescript-tools.nvim
     --
     -- But for many setups, the LSP (`ts_ls`) will work just fine
-    -- ts_ls = {},
+    ts_ls = {
+      -- enable non-js files to take more than 20mb to avoid constant lsp errors
+      cmd = function(dispatchers, config)
+        local bin = 'typescript-language-server'
+        local root = (config or {}).root_dir
+        if root then
+          local local_bin = vim.fs.joinpath(root, 'node_modules/.bin', bin)
+          if vim.fn.executable(local_bin) == 1 then bin = local_bin end
+        end
+        return vim.lsp.rpc.start({ bin, '--stdio' }, dispatchers, {
+          -- Merged into the inherited environment, not a replacement for it.
+          env = { NODE_OPTIONS = '--require=' .. vim.fn.stdpath 'config' .. '/ts/disable-size-limit.cjs' },
+        })
+      end,
+    },
 
     stylua = {}, -- Used to format Lua code
 
@@ -799,16 +843,16 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
-      -- rust = { 'rustfmt' },
+      rust = { 'rustfmt' },
       -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
+      python = { 'isort', 'black' },
       --
       -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      javascript = { 'prettierd', 'prettier', stop_after_first = true },
     },
   }
 
-  vim.keymap.set({ 'n', 'v' }, '<leader>f', function() require('conform').format { async = true } end, { desc = '[F]ormat buffer' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>ff', function() require('conform').format { async = true } end, { desc = '[F]ormat buffer' })
 end
 
 -- ============================================================
@@ -856,7 +900,13 @@ do
       --
       -- See `:help blink-cmp-config-keymap` for defining your own keymap
       preset = 'default',
-
+      -- preset = 'super-tab',
+      keymap = {
+        ['<Tab>'] = {
+          'accept',
+          -- 'fallback',
+        },
+      },
       -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
       --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
     },
@@ -870,7 +920,7 @@ do
     completion = {
       -- By default, you may press `<c-space>` to show the documentation.
       -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      documentation = { auto_show = true, auto_show_delay_ms = 500 },
     },
 
     sources = {
@@ -980,6 +1030,64 @@ do
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- require 'custom.plugins'
+
+  vim.pack.add { gh 'FabijanZulj/blame.nvim' }
+  require('blame').setup {}
+
+  -- Refactoring
+  vim.pack.add {
+    'https://github.com/lewis6991/async.nvim',
+    'https://github.com/theprimeagen/refactoring.nvim',
+  }
+
+  require('refactoring').setup {}
+
+  local refactoring = require 'refactoring'
+
+  vim.keymap.set(
+    { 'n', 'x' },
+    '<leader>re',
+    function() return refactoring.refactor 'Extract Function' end,
+    { expr = true, desc = 'Refactor: extract function' }
+  )
+  vim.keymap.set(
+    { 'n', 'x' },
+    '<leader>rf',
+    function() return refactoring.refactor 'Extract Function To File' end,
+    { expr = true, desc = 'Refactor: extract function to file' }
+  )
+  vim.keymap.set(
+    { 'n', 'x' },
+    '<leader>rv',
+    function() return refactoring.refactor 'Extract Variable' end,
+    { expr = true, desc = 'Refactor: extract variable' }
+  )
+  vim.keymap.set({ 'n', 'x' }, '<leader>ri', function() return refactoring.refactor 'Inline Variable' end, { expr = true, desc = 'Refactor: inline variable' })
+  vim.keymap.set({ 'n', 'x' }, '<leader>rI', function() return refactoring.refactor 'Inline Function' end, { expr = true, desc = 'Refactor: inline function' })
+  vim.keymap.set({ 'n', 'x' }, '<leader>rbb', function() return refactoring.refactor 'Extract Block' end, { expr = true, desc = 'Refactor: extract block' })
+  vim.keymap.set(
+    { 'n', 'x' },
+    '<leader>rbf',
+    function() return refactoring.refactor 'Extract Block To File' end,
+    { expr = true, desc = 'Refactor: extract block to file' }
+  )
+  vim.keymap.set({ 'n', 'x' }, '<leader>rr', function() require('telescope').extensions.refactoring.refactors() end, { desc = 'Refactor: pick a refactor' })
+  vim.keymap.set('n', '<leader>rp', function() refactoring.debug.printf { below = true } end, { desc = 'Refactor: insert printf below' })
+  vim.keymap.set({ 'n', 'x' }, '<leader>rP', function() refactoring.debug.print_var() end, { desc = 'Refactor: print variable' })
+  vim.keymap.set('n', '<leader>rc', function() refactoring.debug.cleanup {} end, { desc = 'Refactor: clean up debug prints' })
+
+  -- Jumping through code
+  vim.pack.add { gh 'folke/flash.nvim' }
+  require('flash').setup {
+    event = 'VeryLazy',
+  }
+  vim.keymap.set({ 'n', 'x', 'o' }, 's', function() require('flash').jump() end, { desc = 'Flash' })
+  vim.keymap.set({ 'n', 'x', 'o' }, 'zf', function() require('flash').jump { search = { wrap = false, forward = true } } end, { desc = 'Flash' })
+  vim.keymap.set({ 'n', 'x', 'o' }, 'zg', function() require('flash').jump { search = { wrap = false, backward = true } } end, { desc = 'Flash Back' })
+  vim.keymap.set('o', 'r', function() require('flash').remote() end, { desc = 'Flash remote' })
+
+  -- telescope custom picker
+  require('config.telescope.multigrep').setup()
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
